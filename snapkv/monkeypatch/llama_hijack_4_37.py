@@ -185,9 +185,9 @@ def llama_sdpa_attn_forward(
         cache_kwargs = {"sin": sin, "cos": cos}  # Specific to RoPE models
        # key_states, value_states = past_key_value.update(key_states, value_states, self.layer_idx, cache_kwargs)
         # Update SG
-        # print('Line 172')
-        # print('kv_seq_len:', kv_seq_len)
-        # print('key_states.shape:', key_states.shape)
+        if self.layer_idx == 1:
+          print('Line 172')
+          print('kv_seq_len:', kv_seq_len, 'key_states.shape:', key_states.shape)
         if key_states.shape[-2] == kv_seq_len: # [SnapKV] add kv_cluster
             self.kv_seq_len = kv_seq_len # [SnapKV] register kv_seq_len
             key_states_compress, value_states_compress = self.kv_cluster.update_kv(key_states, query_states, value_states, attention_mask, self.num_key_value_groups)
@@ -204,6 +204,8 @@ def llama_sdpa_attn_forward(
         key_states = key_states.contiguous()
         value_states = value_states.contiguous()
 
+    if self.layer_idx == 1:
+      print('Line 209:', 'key_states.shape:', key_states.shape, '\n')
     attn_output = torch.nn.functional.scaled_dot_product_attention(
         query_states,
         key_states,
